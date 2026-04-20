@@ -1116,15 +1116,17 @@ function AdminView({ user }) {
     if (!newProf.email || !newProf.name || !newProf.password) return;
     setCreating(true); setError('');
     try {
-      const { data, error: signUpError } = await supabase.auth.admin.createUser({
-        email: newProf.email, password: newProf.password, email_confirm: true,
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: newProf.email, password: newProf.password,
       });
       if (signUpError) throw signUpError;
+      if (!data.user) throw new Error('Sign up failed — user not created.');
       await supabase.from('users').insert({
         id: data.user.id, role: 'professor', name: newProf.name,
         institution: newProf.institution, created_by: user.id,
       });
       setNewProf({ name: '', email: '', institution: '', password: '' });
+      setError('');
       loadData();
     } catch (e) { setError(e.message); }
     setCreating(false);
